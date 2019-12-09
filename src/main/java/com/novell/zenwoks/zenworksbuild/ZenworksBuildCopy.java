@@ -122,6 +122,7 @@ public class ZenworksBuildCopy {
 		}
 		
 //find /opt/novell/zenworks/share/tomcat/webapps/ -name
+		System.out.println("Jar not found at server-"+jarName);
 		return "";
 	}
 
