@@ -4,7 +4,8 @@ import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.util.Scanner;
 
-public class SSHTerminalConsoleMain {
+public class SSHTerminalConsoleOutMain
+{
 
 	private static SSHTerminalConsole sshTerminal;
 
@@ -52,33 +53,24 @@ public class SSHTerminalConsoleMain {
 		//if(command!=null&&!command.isEmpty())
 		{
 			PipedOutputStream commandWriter=new PipedOutputStream();
-			sshTerminal = new SSHDockerContainerTerminalConsole(containerName,new PipedOutputStream(),null);
+			sshTerminal = new SSHTerminalConsole(new PipedOutputStream(),null);
 			sshTerminal.login(userId, pass, url);
 			
 			if(command!=null&&!command.isEmpty()&&!command.endsWith(";"))
 			{
-				command+=";\n";
 				sshTerminal.executeCommand(command);
 			}
-			
-			
-			 
-			
+
+			Scanner scanner=new Scanner(System.in);
 			while(true)
 			{
-				Scanner scanner=new Scanner(System.in);
 				String s=scanner.nextLine();
 				if(s.equalsIgnoreCase("exit"))
 				{
 					sshTerminal.disconnect();
-					System.exit(1);;
+					System.exit(1);
 				}else
 				{
-					if(!s.endsWith(";"))
-					{
-						s+=";\n";
-					}
-					s+="\n";
 					sshTerminal.executeCommand(s);
 				}
 			}

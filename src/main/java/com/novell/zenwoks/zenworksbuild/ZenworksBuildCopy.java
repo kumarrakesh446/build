@@ -24,7 +24,6 @@ public class ZenworksBuildCopy {
 	private static final String JAVA_JAR_LIB = "/opt/novell/zenworks/java/lib";
 	private static final String ZENWORK_JAR_LIB = "/opt/novell/zenworks/share/tomcat/webapps/zenworks/WEB-INF/lib";
 	private static final String ZENWORK_WEB_LIB ="/opt/novell/zenworks/share/tomcat/webapps";
-	private static final String ZENWORK_JSC_PAGE="/jsp/pages";
     private String containerId;
 	private static String containerName = "";
     public void login(String userName, String password, String aditionalCriteria) throws TerminalLoginException {
@@ -77,7 +76,9 @@ public class ZenworksBuildCopy {
 
     private void copyToContainer(String source, String destination) throws TerminalExecutionException
     {
+		sshTerminal.executeCommand("chmod -R 755 "+source);
         sshTerminal.executeCommand("docker cp "+source+" "+containerId+":"+destination);
+		sshTerminal.executeCommand("rm -rf "+source);
     }
 
     private void createBackup(String jarName) throws TerminalExecutionException {
@@ -140,6 +141,7 @@ public class ZenworksBuildCopy {
 		}
 		
 //find /opt/novell/zenworks/share/tomcat/webapps/ -name
+		System.out.println(jarName+" Not found on server.");
 		return "";
 	}
 
@@ -207,6 +209,9 @@ public class ZenworksBuildCopy {
 			{
 				zenworksBuildCopy.login(userId, pass, url);
 				zenworksBuildCopy.copyJars(jarList);
+				System.out.println("!!!!!!!!Done Copy!!!!!!!!!!!!!");
+				System.out.println("Restarting container");
+				zenworksBuildCopy.restartContainer();
 
 			}
 			finally
@@ -214,7 +219,11 @@ public class ZenworksBuildCopy {
 				zenworksBuildCopy.disconnect();
 			}
 		}
-		System.out.println("!!!!!!!!Done Copy!!!!!!!!!!!!!");
+	}
+
+	private void restartContainer() throws TerminalExecutionException
+	{
+		sshTerminal.executeCommand("docker restart "+containerId);
 	}
 
 	private static List<String> getAllChangedJsc(String curDir) {

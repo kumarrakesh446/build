@@ -232,7 +232,11 @@ public class SSHTerminalConsole implements Terminal
 
             if(commandWriter != null)
             {
-                commandWriter.write((command + ";\n").getBytes());
+                if(!(command.endsWith("\n")||command.endsWith("\\t")))
+                {
+                    command+="\n";
+                }
+                commandWriter.write((command).getBytes());
                 commandWriter.flush();
                 if(commandOutput!=null)
                 outString = refresh();
