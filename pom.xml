@@ -47,8 +47,28 @@
                             <goal>copy</goal>
                         </goals>
                         <configuration>
-                            <sourceFile>target/ZenWorksBuild-${project.version}.jar</sourceFile>
-                            <destinationFile>E:\ZenworkDockerBuild\ZenWorksBuild.jar</destinationFile>
+                            <fileSets>
+                                <fileSet>
+                                    <sourceFile>target/ZenWorksBuild-${project.version}.jar</sourceFile>
+                                    <destinationFile>ZenworkDockerBuild\ZenWorksBuild.jar</destinationFile>
+                                </fileSet>
+                            </fileSets>
+
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>ZenworkDockerBuild</outputDirectory>
+                            <includeScope>compile</includeScope>
                         </configuration>
                     </execution>
                 </executions>
