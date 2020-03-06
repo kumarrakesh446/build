@@ -4,6 +4,7 @@ import com.jcraft.jsch.*;
 import com.novell.zenwoks.zenworksbuild.Shell.MyUserInfo;
 
 import java.io.*;
+import java.util.Vector;
 
 
 public class SSHDownloadFileTerminal implements Terminal
@@ -118,9 +119,8 @@ public class SSHDownloadFileTerminal implements Terminal
             String out = command.substring(command.indexOf("=") + 1, command.indexOf("out="));
 
 
-
             String source = command.substring(command.lastIndexOf("=") + 1);
-            File fileOutput = new File(out.trim());
+
             source = source.trim();
             System.out.println();
 
@@ -130,7 +130,7 @@ public class SSHDownloadFileTerminal implements Terminal
             SftpATTRS attrs = null;
             try
             {
-                attrs = channelSftp.stat(source+"/"+out);
+                attrs = channelSftp.stat(source + "/" + out);
             }
             catch(Exception e)
             {
@@ -141,12 +141,14 @@ public class SSHDownloadFileTerminal implements Terminal
             }
             if(attrs.isDir())
             {
+                File fileOutput = new File(out.trim());
+                fileOutput.mkdirs();
                 channelSftp.cd(source);
-                //recursiveFolderUpload(source, );
+                recursiveFolderUpload(source, out);
             }
             else
             {
-                downloadFile(source+"/"+out,out.trim());
+                downloadFile(source + "/" + out, out.trim());
             }
 
 
@@ -170,9 +172,9 @@ public class SSHDownloadFileTerminal implements Terminal
         return stringOutput = outString;
     }
 
-    private void downloadFile(String source,String destination) throws IOException, SftpException
+    private void downloadFile(String source, String destination) throws IOException, SftpException
     {
-            channelSftp.get(source,destination);
+        channelSftp.get(source, destination);
     }
 
     /**
@@ -188,60 +190,66 @@ public class SSHDownloadFileTerminal implements Terminal
     {
 
         File sourceFile = new File(sourcePath);
+        File destinationFile = new File(destinationPath);
         boolean copyContains = sourceFile.getName().startsWith(".");
-        if(sourceFile.isFile())
+        SftpATTRS stat = null;
+        try
+        {
+            stat = channelSftp.stat(sourcePath);
+        }
+        catch(SftpException e)
         {
 
-            // copy if it is a file
-            channelSftp.cd(destinationPath);
-            if(!copyContains)
+        }
+        if(stat != null)
+        {
+            if(!stat.isDir())
             {
-                //downloadFile(sourceFile);
-            }
+                if(!copyContains)
+                {
+                    downloadFile(sourcePath, destinationPath);
+                }
 
+            }
+            else
+            {
+                channelSftp.cd(sourcePath);
+                Vector files = channelSftp.ls(sourcePath);
+
+                if(files != null)
+                {
+
+                    if(!copyContains)
+                    {
+                        channelSftp.cd(sourcePath);
+                    }
+                    SftpATTRS attrs = null;
+
+                    // check if the directory is already existing
+                    {
+                        if(!copyContains)
+                            destinationFile.mkdir();
+
+                    }
+
+                    for(Object f : files)
+                    {
+                        ChannelSftp.LsEntry o = (ChannelSftp.LsEntry)f;
+                        if(o.getFilename().equals(".") || o.getFilename().equals(".."))
+                        {
+                            continue;
+                        }
+                        recursiveFolderUpload(sourcePath + "/" + o.getFilename(), destinationPath + (copyContains ? "" : ("\\" + o.getFilename())));
+                    }
+
+                }
+            }
         }
         else
         {
-
-            File[] files = sourceFile.listFiles();
-
-            if(files != null)
-            {
-
-                if(!copyContains)
-                {
-                    channelSftp.cd(destinationPath);
-                }
-                SftpATTRS attrs = null;
-
-                // check if the directory is already existing
-                try
-                {
-                    attrs = channelSftp.stat(destinationPath + (copyContains ? "" : ("/" + sourceFile.getName())));
-                }
-                catch(Exception e)
-                {
-                }
-
-                // else create a directory
-                if(attrs != null)
-                {
-
-                }
-                else
-                {
-                    if(!copyContains)
-                        channelSftp.mkdir(sourceFile.getName());
-
-                }
-
-                for(File f : files)
-                {
-                    recursiveFolderUpload(f.getAbsolutePath(), destinationPath + (copyContains ? "" : ("/" + sourceFile.getName())));
-                }
-
-            }
+            return;
         }
+
 
     }
 
@@ -304,7 +312,7 @@ public class SSHDownloadFileTerminal implements Terminal
 
         String src = args[3];
         String dst = args[4];
-        SSHDownloadFileTerminal copyFileTerminal=null;
+        SSHDownloadFileTerminal copyFileTerminal = null;
         try
         {
             copyFileTerminal = new SSHDownloadFileTerminal();
@@ -314,7 +322,7 @@ public class SSHDownloadFileTerminal implements Terminal
         }
         finally
         {
-            if(copyFileTerminal!=null)
+            if(copyFileTerminal != null)
             {
                 copyFileTerminal.disconnect();
             }
