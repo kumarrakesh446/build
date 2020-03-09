@@ -44,8 +44,8 @@ public class ExportListView implements ZenDockerCommand
         {
             try
             {
-
-                System.out.println(file.getName().replace(Conf.getExportFileExt(), "") + "-" + Arrays.toString(readFile(file.getName())));
+                System.out.println();
+                System.out.println(file.getName().replace(Conf.getExportFileExt(), "") + " -" + Arrays.toString(readFile(file.getName())));
             }
             catch(Exception e)
             {

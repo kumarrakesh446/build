@@ -26,7 +26,7 @@ public class ZenDockerPatchLoader extends ZenDockerPatch
     @Override
     public void executeCommand(ArrayList<String> argument) throws Exception
     {
-        argument.add(3,"zenserver");
+        argument.add(3,"zenloader");
         super.executeCommand(argument);
     }
 
